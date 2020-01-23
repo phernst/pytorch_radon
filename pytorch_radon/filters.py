@@ -11,7 +11,7 @@ class AbstractFilter(nn.Module):
     def forward(self, x):
         input_size = x.shape[2]
         projection_size_padded = \
-            max(64, int(2 ** (2 * torch.tensor(input_size).float().log2().ceil())))
+            max(64, int(2 ** (2 * torch.tensor(input_size)).float().log2().ceil()))
         pad_width = projection_size_padded - input_size
         padded_tensor = F.pad(x, (0,0,0,pad_width))
         f = fftfreq(padded_tensor.shape[2]).view(-1, 1).to(x.device)

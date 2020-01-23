@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pytorch_radon',
-    version='0.1.0',
+    version='0.1.1',
     author='Philipp Ernst',
     author_email='phil23940@yahoo.de',
     packages=['pytorch_radon'],
