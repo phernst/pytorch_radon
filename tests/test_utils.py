@@ -2,7 +2,7 @@ import unittest
 from pytorch_radon.utils import PI, SQRT2, deg2rad
 import numpy as np
 
-class TestStackgram(unittest.TestCase):
+class TestUtils(unittest.TestCase):
     def test_pi(self):
         self.assertAlmostEqual(PI.item(), np.pi, places=6)
 

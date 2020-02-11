@@ -30,7 +30,7 @@ class Radon(nn.Module):
         out = torch.zeros(N, C, W, len(self.theta), device=x.device)
 
         for i in range(len(self.theta)):
-            rotated = F.grid_sample(x, self.all_grids[i].repeat(N, 1, 1, 1).to(x.device))
+            rotated = F.grid_sample(x, self.all_grids[i].repeat(N, 1, 1, 1).to(x.device), align_corners=True)
             out[...,i] = rotated.sum(2)
 
         return out
@@ -43,7 +43,7 @@ class Radon(nn.Module):
                     [ theta.cos(), theta.sin(), 0],
                     [-theta.sin(), theta.cos(), 0],
                 ]])
-            all_grids.append(F.affine_grid(R, torch.Size([1, 1, grid_size, grid_size])))
+            all_grids.append(F.affine_grid(R, torch.Size([1, 1, grid_size, grid_size]), align_corners=True))
         return all_grids
 
 class IRadon(nn.Module):
@@ -66,7 +66,7 @@ class IRadon(nn.Module):
 
         reco = torch.zeros(x.shape[0], ch_size, it_size, it_size).to(x.device)
         for i_theta in range(len(self.theta)):
-            reco += F.grid_sample(x, self.all_grids[i_theta].repeat(reco.shape[0], 1, 1, 1).to(x.device))
+            reco += F.grid_sample(x, self.all_grids[i_theta].repeat(reco.shape[0], 1, 1, 1).to(x.device), align_corners=True)
 
         if not self.circle:
             W = self.out_size

@@ -22,7 +22,7 @@ class Stackgram(nn.Module):
         for i_theta in range(len(self.theta)):
             repline = x[...,i_theta]
             repline = repline.unsqueeze(-1).repeat(1,1,1,repline.shape[2])
-            linogram = F.grid_sample(repline, self.all_grids[i_theta].repeat(x.shape[0],1,1,1).to(x.device), mode=self.mode)
+            linogram = F.grid_sample(repline, self.all_grids[i_theta].repeat(x.shape[0],1,1,1).to(x.device), mode=self.mode, align_corners=True)
             stackgram[:,i_theta] = linogram
 
         return stackgram
@@ -32,7 +32,7 @@ class Stackgram(nn.Module):
         for i_theta in range(len(angles)):
             t = deg2rad(angles[i_theta])
             R = torch.tensor([[t.sin(), t.cos(), 0.],[t.cos(), -t.sin(), 0.]]).unsqueeze(0)
-            all_grids.append(F.affine_grid(R, torch.Size([1,1,grid_size,grid_size])))
+            all_grids.append(F.affine_grid(R, torch.Size([1,1,grid_size,grid_size]), align_corners=True))
         return all_grids
 
 class IStackgram(nn.Module):
@@ -52,7 +52,7 @@ class IStackgram(nn.Module):
 
         for i_theta in range(len(self.theta)):
             linogram = x[:,i_theta].unsqueeze(1)
-            repline = F.grid_sample(linogram, self.all_grids[i_theta].repeat(x.shape[0],1,1,1).to(x.device), mode=self.mode)
+            repline = F.grid_sample(linogram, self.all_grids[i_theta].repeat(x.shape[0],1,1,1).to(x.device), mode=self.mode, align_corners=True)
             repline = repline[...,repline.shape[-1]//2]
             sinogram[...,i_theta] = repline
 
@@ -63,5 +63,5 @@ class IStackgram(nn.Module):
         for i_theta in range(len(angles)):
             t = deg2rad(angles[i_theta])
             R = torch.tensor([[t.sin(), t.cos(), 0.],[t.cos(), -t.sin(), 0.]]).unsqueeze(0)
-            all_grids.append(F.affine_grid(R, torch.Size([1,1,grid_size,grid_size])))
+            all_grids.append(F.affine_grid(R, torch.Size([1,1,grid_size,grid_size]), align_corners=True))
         return all_grids

@@ -3,7 +3,7 @@ from pytorch_radon import Radon, IRadon
 from pytorch_radon.filters import RampFilter, HannFilter, LearnableFilter
 import torch
 
-class TestStackgram(unittest.TestCase):
+class TestFilters(unittest.TestCase):
     def test_ramp_filter(self):
         img = torch.zeros(1,1,256,256)
         img[:, :, 120:130, 120:130] = 1
