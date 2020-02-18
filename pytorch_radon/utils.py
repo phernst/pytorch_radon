@@ -1,4 +1,12 @@
 import torch
+import torch.nn.functional as F
+
+if torch.__version__>'1.2.0':
+    affine_grid = lambda theta, size: F.affine_grid(theta, size, align_corners=True)
+    grid_sample = lambda input, grid, mode='bilinear': F.grid_sample(input, grid, align_corners=True, mode=mode)
+else:
+    affine_grid = F.affine_grid
+    grid_sample = F.grid_sample
 
 # constants
 PI = 4*torch.ones(1).atan()
