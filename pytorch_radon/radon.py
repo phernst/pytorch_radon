@@ -19,7 +19,7 @@ class Radon(nn.Module):
 
     def forward(self, x):
         N, C, W, H = x.shape
-        assert(W==H)
+        assert W == H
 
         if self.all_grids is None:
             self.all_grids = self._create_grids(self.theta, W, self.circle)
@@ -38,7 +38,7 @@ class Radon(nn.Module):
 
         for i in range(len(self.theta)):
             rotated = grid_sample(x, self.all_grids[i].repeat(N, 1, 1, 1).to(x.device))
-            out[...,i] = rotated.sum(2)
+            out[..., i] = rotated.sum(2)
 
         return out
 
@@ -49,9 +49,9 @@ class Radon(nn.Module):
         for theta in angles:
             theta = deg2rad(theta)
             R = torch.tensor([[
-                    [ theta.cos(), theta.sin(), 0],
-                    [-theta.sin(), theta.cos(), 0],
-                ]], dtype=self.dtype)
+                [theta.cos(), theta.sin(), 0],
+                [-theta.sin(), theta.cos(), 0],
+            ]], dtype=self.dtype)
             all_grids.append(affine_grid(R, torch.Size([1, 1, grid_size, grid_size])))
         return all_grids
 
@@ -106,7 +106,7 @@ class IRadon(nn.Module):
         if self.out_size is not None:
             pad = (self.out_size - self.in_size)//2
             reco = F.pad(reco, (pad, pad, pad, pad))
-        
+
         return reco
 
     def _create_yxgrid(self, in_size, circle):
@@ -115,16 +115,15 @@ class IRadon(nn.Module):
         unitrange = torch.linspace(-1, 1, in_size, dtype=self.dtype)
         return torch.meshgrid(unitrange, unitrange)
 
-    def _XYtoT(self, theta):
-        T = self.xgrid*(deg2rad(theta)).cos() - self.ygrid*(deg2rad(theta)).sin()
-        return T
+    def _xy_to_t(self, theta):
+        return self.xgrid*(deg2rad(theta)).cos() - self.ygrid*(deg2rad(theta)).sin()
 
     def _create_grids(self, angles, grid_size, circle):
         if not circle:
             grid_size = int((SQRT2*grid_size).ceil())
         all_grids = []
-        for i_theta in range(len(angles)):
-            X = torch.ones(grid_size, dtype=self.dtype).view(-1,1).repeat(1, grid_size)*i_theta*2./(len(angles)-1)-1.
-            Y = self._XYtoT(angles[i_theta])
+        for i_theta, theta in enumerate(angles):
+            X = torch.ones(grid_size, dtype=self.dtype).view(-1, 1).repeat(1, grid_size)*i_theta*2./(len(angles)-1)-1.
+            Y = self._xy_to_t(theta)
             all_grids.append(torch.cat((X.unsqueeze(-1), Y.unsqueeze(-1)), dim=-1).unsqueeze(0))
         return all_grids

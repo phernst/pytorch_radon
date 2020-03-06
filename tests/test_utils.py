@@ -1,6 +1,7 @@
 import unittest
-from pytorch_radon.utils import PI, SQRT2, deg2rad
 import numpy as np
+
+from pytorch_radon.utils import PI, SQRT2, deg2rad
 
 class TestUtils(unittest.TestCase):
     def test_pi(self):
