@@ -9,11 +9,11 @@ else:
     grid_sample = F.grid_sample
 
 # constants
-PI = 4*torch.ones(1).atan()
-SQRT2 = (2*torch.ones(1)).sqrt()
+PI = 4*torch.ones(1, dtype=torch.double).atan()
+SQRT2 = (2*torch.ones(1, dtype=torch.double)).sqrt()
 
-def deg2rad(x):
-    return x*PI/180
+def deg2rad(x, dtype=torch.float):
+    return (x*PI/180).to(dtype)
 
 def rfft(tensor, axis=-1, normalized=False, onesided=True):
     ndim = tensor.ndim

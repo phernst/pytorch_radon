@@ -30,7 +30,7 @@ class AbstractFilter(nn.Module):
         fourier_filter = self.create_filter(fourier_filter)
         fourier_filter = fourier_filter.unsqueeze(-2)
         projection = rfft(padded_tensor, axis=2, onesided=False)*fourier_filter
-        return irfft(projection, axis=2, onesided=False)[:, :, :input_size, :]
+        return irfft(projection, axis=2, onesided=False)[:, :, :input_size, :].to(x.dtype)
 
     def create_filter(self, fourier_ramp):
         raise NotImplementedError

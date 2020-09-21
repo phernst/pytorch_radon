@@ -47,7 +47,7 @@ class Radon(nn.Module):
             grid_size = int((SQRT2*grid_size).ceil())
         all_grids = []
         for theta in angles:
-            theta = deg2rad(theta)
+            theta = deg2rad(theta, self.dtype)
             R = torch.tensor([[
                 [theta.cos(), theta.sin(), 0],
                 [-theta.sin(), theta.cos(), 0],
@@ -101,7 +101,7 @@ class IRadon(nn.Module):
             reconstruction_circle = reconstruction_circle.repeat(x.shape[0], ch_size, 1, 1)
             reco[~reconstruction_circle] = 0.
 
-        reco = reco*PI.item()/(2*len(self.theta))
+        reco *= PI/(2*len(self.theta))
 
         if self.out_size is not None:
             pad = (self.out_size - self.in_size)//2
@@ -116,7 +116,7 @@ class IRadon(nn.Module):
         return torch.meshgrid(unitrange, unitrange)
 
     def _xy_to_t(self, theta):
-        return self.xgrid*(deg2rad(theta)).cos() - self.ygrid*(deg2rad(theta)).sin()
+        return self.xgrid*(deg2rad(theta, self.dtype)).cos() - self.ygrid*(deg2rad(theta, self.dtype)).sin()
 
     def _create_grids(self, angles, grid_size, circle):
         if not circle:
