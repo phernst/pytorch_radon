@@ -42,7 +42,7 @@ class RampFilter(AbstractFilter):
 class HannFilter(AbstractFilter):
     def create_filter(self, fourier_ramp):
         n = torch.arange(0, fourier_ramp.shape[0])
-        hann = 0.5 - 0.5*(2.0*PI*n/(fourier_ramp.shape[0]-1)).cos()
+        hann = (0.5 - 0.5*(2.0*PI*n/(fourier_ramp.shape[0]-1)).cos()).to(fourier_ramp.device)
         return fourier_ramp*hann.roll(hann.shape[0]//2, 0).unsqueeze(-1)
 
 class LearnableFilter(AbstractFilter):
