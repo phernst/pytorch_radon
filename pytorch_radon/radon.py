@@ -101,7 +101,7 @@ class IRadon(nn.Module):
             reconstruction_circle = reconstruction_circle.repeat(x.shape[0], ch_size, 1, 1)
             reco[~reconstruction_circle] = 0.
 
-        reco *= PI/(2*len(self.theta))
+        reco *= PI.to(reco.device)/(2*len(self.theta))
 
         if self.out_size is not None:
             pad = (self.out_size - self.in_size)//2

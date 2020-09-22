@@ -104,7 +104,8 @@ class TestRadon(unittest.TestCase):
         ir = IRadon(img.shape[2], theta, circle, dtype=torch.double)
         sino = r(img)
         reco = ir(sino)
-        self.assertAlmostEqual(torch.nn.MSELoss()(img, reco).item(), 0, places=3)
+        self.assertAlmostEqual(torch.nn.MSELoss()(img, reco).item(), 0, places=4)
+        self.assertTrue(reco.dtype == torch.double)
 
     def test_radon_iradon_not_circle_double(self):
         img = torch.zeros(1, 1, 256, 256, dtype=torch.double)
@@ -115,7 +116,8 @@ class TestRadon(unittest.TestCase):
         ir = IRadon(img.shape[2], theta, circle, dtype=torch.double)
         sino = r(img)
         reco = ir(sino)
-        self.assertAlmostEqual(torch.nn.MSELoss()(img, reco).item(), 0, places=3)
+        self.assertAlmostEqual(torch.nn.MSELoss()(img, reco).item(), 0, places=4)
+        self.assertTrue(reco.dtype == torch.double)
 
     def test_radon_iradon_not_circle_double_scikit(self):
         img = torch.zeros(1, 1, 256, 256, dtype=torch.double)

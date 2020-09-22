@@ -6,11 +6,11 @@ from .utils import PI, rfft, irfft
 
 def ramp_filter(size):
     image_n = torch.cat([
-        torch.arange(1, size / 2 + 1, 2),
-        torch.arange(size / 2 - 1, 0, -2)
+        torch.arange(1, size / 2 + 1, 2, dtype=torch.int),
+        torch.arange(size / 2 - 1, 0, -2, dtype=torch.int),
     ])
 
-    image_filter = torch.zeros(size)
+    image_filter = torch.zeros(size, dtype=torch.double)
     image_filter[0] = 0.25
     image_filter[1::2] = -1 / (PI * image_n) ** 2
 
@@ -29,8 +29,8 @@ class AbstractFilter(nn.Module):
         fourier_filter = ramp_filter(padded_tensor.shape[2]).to(x.device)
         fourier_filter = self.create_filter(fourier_filter)
         fourier_filter = fourier_filter.unsqueeze(-2)
-        projection = rfft(padded_tensor, axis=2, onesided=False)*fourier_filter
-        return irfft(projection, axis=2, onesided=False)[:, :, :input_size, :].to(x.dtype)
+        projection = rfft(padded_tensor, axis=2)*fourier_filter
+        return irfft(projection, axis=2)[:, :, :input_size, :].to(x.dtype)
 
     def create_filter(self, fourier_ramp):
         raise NotImplementedError
@@ -52,8 +52,8 @@ class LearnableFilter(AbstractFilter):
 
     def forward(self, x):
         fourier_filter = self.filter.unsqueeze(-1).repeat(1, 1, 2).to(x.device)
-        projection = rfft(x, axis=2, onesided=False) * fourier_filter
-        return irfft(projection, axis=2, onesided=False)
+        projection = rfft(x, axis=2) * fourier_filter
+        return irfft(projection, axis=2).to(x.dtype)
 
     def create_filter(self, fourier_ramp):
         raise NotImplementedError
