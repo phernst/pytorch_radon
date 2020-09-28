@@ -45,6 +45,7 @@ class Radon(nn.Module):
     def _create_grids(self, angles, grid_size, circle):
         if not circle:
             grid_size = int((SQRT2*grid_size).ceil())
+        grid_shape = [1, 1, grid_size, grid_size]
         all_grids = []
         for theta in angles:
             theta = deg2rad(theta, self.dtype)
@@ -52,7 +53,7 @@ class Radon(nn.Module):
                 [theta.cos(), theta.sin(), 0],
                 [-theta.sin(), theta.cos(), 0],
             ]], dtype=self.dtype)
-            all_grids.append(affine_grid(R, torch.Size([1, 1, grid_size, grid_size])))
+            all_grids.append(affine_grid(R, grid_shape))
         return all_grids
 
 class IRadon(nn.Module):
@@ -64,6 +65,7 @@ class IRadon(nn.Module):
         self.out_size = out_size
         self.in_size = in_size
         self.dtype = dtype
+        self.deg2rad = lambda x: deg2rad(x, dtype)
         self.ygrid, self.xgrid, self.all_grids = None, None, None
         if in_size is not None:
             self.ygrid, self.xgrid = self._create_yxgrid(in_size, circle)
@@ -116,14 +118,14 @@ class IRadon(nn.Module):
         return torch.meshgrid(unitrange, unitrange)
 
     def _xy_to_t(self, theta):
-        return self.xgrid*(deg2rad(theta, self.dtype)).cos() - self.ygrid*(deg2rad(theta, self.dtype)).sin()
+        return self.xgrid*self.deg2rad(theta).cos() - self.ygrid*self.deg2rad(theta).sin()
 
     def _create_grids(self, angles, grid_size, circle):
         if not circle:
             grid_size = int((SQRT2*grid_size).ceil())
         all_grids = []
         for i_theta, theta in enumerate(angles):
-            X = torch.ones(grid_size, dtype=self.dtype).view(-1, 1).repeat(1, grid_size)*i_theta*2./(len(angles)-1)-1.
+            X = torch.ones([grid_size]*2, dtype=self.dtype)*i_theta*2./(len(angles)-1)-1.
             Y = self._xy_to_t(theta)
-            all_grids.append(torch.cat((X.unsqueeze(-1), Y.unsqueeze(-1)), dim=-1).unsqueeze(0))
+            all_grids.append(torch.stack((X, Y), dim=-1).unsqueeze(0))
         return all_grids

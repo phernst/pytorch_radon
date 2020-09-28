@@ -28,11 +28,15 @@ class Stackgram(nn.Module):
         return stackgram
 
     def _create_grids(self, angles, grid_size):
+        grid_shape = [1, 1, grid_size, grid_size]
         all_grids = []
         for theta in angles:
             t = deg2rad(theta)
-            R = torch.tensor([[t.sin(), t.cos(), 0.], [t.cos(), -t.sin(), 0.]], dtype=self.dtype).unsqueeze(0)
-            all_grids.append(affine_grid(R, torch.Size([1, 1, grid_size, grid_size])))
+            R = torch.tensor([
+                [t.sin(), t.cos(), 0.],
+                [t.cos(), -t.sin(), 0.],
+            ], dtype=self.dtype).unsqueeze(0)
+            all_grids.append(affine_grid(R, grid_shape))
         return all_grids
 
 class IStackgram(nn.Module):
@@ -60,9 +64,13 @@ class IStackgram(nn.Module):
         return sinogram
 
     def _create_grids(self, angles, grid_size):
+        grid_shape = [1, 1, grid_size, grid_size]
         all_grids = []
         for theta in angles:
             t = deg2rad(theta)
-            R = torch.tensor([[t.sin(), t.cos(), 0.], [t.cos(), -t.sin(), 0.]], dtype=self.dtype).unsqueeze(0)
-            all_grids.append(affine_grid(R, torch.Size([1, 1, grid_size, grid_size])))
+            R = torch.tensor([
+                [t.sin(), t.cos(), 0.],
+                [t.cos(), -t.sin(), 0.],
+            ], dtype=self.dtype).unsqueeze(0)
+            all_grids.append(affine_grid(R, grid_shape))
         return all_grids
