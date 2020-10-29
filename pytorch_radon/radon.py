@@ -5,8 +5,10 @@ import torch.nn.functional as F
 from .utils import PI, SQRT2, deg2rad, affine_grid, grid_sample
 from .filters import RampFilter
 
+
 class Radon(nn.Module):
-    def __init__(self, in_size=None, theta=None, circle=True, dtype=torch.float):
+    def __init__(self, in_size=None, theta=None, circle=True,
+                 dtype=torch.float):
         super(Radon, self).__init__()
         self.circle = circle
         self.theta = theta
@@ -31,13 +33,23 @@ class Radon(nn.Module):
             old_center = W // 2
             pad_before = new_center - old_center
             pad_width = (pad_before, pad - pad_before)
-            x = F.pad(x, (pad_width[0], pad_width[1], pad_width[0], pad_width[1]))
+            x = F.pad(
+                x,
+                (pad_width[0], pad_width[1], pad_width[0], pad_width[1]),
+            )
 
         N, C, W, _ = x.shape
-        out = torch.zeros(N, C, W, len(self.theta), device=x.device, dtype=self.dtype)
+        out = torch.zeros(
+            N, C, W, len(self.theta),
+            device=x.device,
+            dtype=self.dtype,
+        )
 
         for i in range(len(self.theta)):
-            rotated = grid_sample(x, self.all_grids[i].repeat(N, 1, 1, 1).to(x.device))
+            rotated = grid_sample(
+                x,
+                self.all_grids[i].repeat(N, 1, 1, 1).to(x.device),
+            )
             out[..., i] = rotated.sum(2)
 
         return out
@@ -55,6 +67,7 @@ class Radon(nn.Module):
             ]], dtype=self.dtype)
             all_grids.append(affine_grid(R, grid_shape))
         return all_grids
+
 
 class IRadon(nn.Module):
     def __init__(self, in_size=None, theta=None, circle=True,
@@ -77,16 +90,33 @@ class IRadon(nn.Module):
         ch_size = x.shape[1]
 
         if self.in_size is None:
-            self.in_size = int((it_size/SQRT2).floor()) if not self.circle else it_size
+            self.in_size = int((it_size/SQRT2).floor()) \
+                if not self.circle else it_size
         if None in [self.ygrid, self.xgrid, self.all_grids]:
-            self.ygrid, self.xgrid = self._create_yxgrid(self.in_size, self.circle)
-            self.all_grids = self._create_grids(self.theta, self.in_size, self.circle)
+            self.ygrid, self.xgrid = self._create_yxgrid(
+                self.in_size,
+                self.circle,
+            )
+            self.all_grids = self._create_grids(
+                self.theta,
+                self.in_size,
+                self.circle,
+            )
 
         x = self.filter(x)
 
-        reco = torch.zeros(x.shape[0], ch_size, it_size, it_size, device=x.device, dtype=self.dtype)
+        reco = torch.zeros(
+            x.shape[0], ch_size, it_size, it_size,
+            device=x.device,
+            dtype=self.dtype,
+        )
         for i_theta in range(len(self.theta)):
-            reco += grid_sample(x, self.all_grids[i_theta].repeat(reco.shape[0], 1, 1, 1).to(x.device))
+            reco += grid_sample(
+                x,
+                self.all_grids[i_theta].repeat(
+                    reco.shape[0], 1, 1, 1
+                ).to(x.device),
+            )
 
         if not self.circle:
             W = self.in_size
@@ -96,11 +126,16 @@ class IRadon(nn.Module):
             old_center = W // 2
             pad_before = new_center - old_center
             pad_width = (pad_before, pad - pad_before)
-            reco = F.pad(reco, (-pad_width[0], -pad_width[1], -pad_width[0], -pad_width[1]))
+            reco = F.pad(
+                reco,
+                (-pad_width[0], -pad_width[1], -pad_width[0], -pad_width[1]),
+            )
 
         if self.circle:
             reconstruction_circle = (self.xgrid ** 2 + self.ygrid ** 2) <= 1
-            reconstruction_circle = reconstruction_circle.repeat(x.shape[0], ch_size, 1, 1)
+            reconstruction_circle = reconstruction_circle.repeat(
+                x.shape[0], ch_size, 1, 1,
+            )
             reco[~reconstruction_circle] = 0.
 
         reco *= PI.to(reco.device)/(2*len(self.theta))
@@ -118,14 +153,16 @@ class IRadon(nn.Module):
         return torch.meshgrid(unitrange, unitrange)
 
     def _xy_to_t(self, theta):
-        return self.xgrid*self.deg2rad(theta).cos() - self.ygrid*self.deg2rad(theta).sin()
+        return self.xgrid*self.deg2rad(theta).cos() - \
+            self.ygrid*self.deg2rad(theta).sin()
 
     def _create_grids(self, angles, grid_size, circle):
         if not circle:
             grid_size = int((SQRT2*grid_size).ceil())
         all_grids = []
         for i_theta, theta in enumerate(angles):
-            X = torch.ones([grid_size]*2, dtype=self.dtype)*i_theta*2./(len(angles)-1)-1.
+            X = torch.ones([grid_size]*2, dtype=self.dtype)*i_theta*2. / \
+                (len(angles)-1)-1.
             Y = self._xy_to_t(theta)
             all_grids.append(torch.stack((X, Y), dim=-1).unsqueeze(0))
         return all_grids
