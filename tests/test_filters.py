@@ -61,7 +61,7 @@ class TestFilters(unittest.TestCase):
         img[:, :, 120:130, 120:130] = 1
         circle = False
         theta = torch.arange(180)
-        r = Radon(img.shape[2], theta, circle, dtype=torch.double)
+        r = Radon(img.shape[2], theta, circle, dtype=torch.double, scikit=True)
         ir = IRadon(
             img.shape[2],
             theta,
@@ -92,7 +92,7 @@ class TestFilters(unittest.TestCase):
         self.assertAlmostEqual(
             np.mean(np.abs(reco_sk - reco.numpy().squeeze())),
             0,
-            places=10,
+            places=7,  # TODO: was 10
         )
 
 

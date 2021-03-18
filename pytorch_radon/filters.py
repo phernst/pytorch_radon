@@ -39,6 +39,11 @@ class AbstractFilter(nn.Module):
         raise NotImplementedError
 
 
+class IdentityFilter(AbstractFilter):
+    def create_filter(self, fourier_ramp):
+        return torch.ones_like(fourier_ramp)
+
+
 class RampFilter(AbstractFilter):
     def create_filter(self, fourier_ramp):
         return fourier_ramp

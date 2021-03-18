@@ -1,7 +1,8 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 
-from .utils import SQRT2, deg2rad, affine_grid, grid_sample
+from .utils import SQRT2, deg2rad  #, affine_grid, grid_sample
 
 
 class Stackgram(nn.Module):
@@ -29,12 +30,13 @@ class Stackgram(nn.Module):
         for i_theta in range(len(self.theta)):
             repline = x[..., i_theta]
             repline = repline.unsqueeze(-1).repeat(1, 1, 1, repline.shape[2])
-            linogram = grid_sample(
+            linogram = F.grid_sample(
                 repline,
                 self.all_grids[i_theta].repeat(
                     x.shape[0], 1, 1, 1,
                 ).to(x.device),
                 mode=self.mode,
+                align_corners=False,
             )
             stackgram[:, i_theta] = linogram
 
@@ -49,7 +51,7 @@ class Stackgram(nn.Module):
                 [t.sin(), t.cos(), 0.],
                 [t.cos(), -t.sin(), 0.],
             ], dtype=self.dtype).unsqueeze(0)
-            all_grids.append(affine_grid(R, grid_shape))
+            all_grids.append(F.affine_grid(R, grid_shape, align_corners=False))
         return all_grids
 
 
@@ -77,12 +79,13 @@ class IStackgram(nn.Module):
 
         for i_theta in range(len(self.theta)):
             linogram = x[:, i_theta].unsqueeze(1)
-            repline = grid_sample(
+            repline = F.grid_sample(
                 linogram,
                 self.all_grids[i_theta].repeat(
                     x.shape[0], 1, 1, 1,
                 ).to(x.device),
                 mode=self.mode,
+                align_corners=False,
             )
             repline = repline[..., repline.shape[-1]//2]
             sinogram[..., i_theta] = repline
@@ -98,5 +101,5 @@ class IStackgram(nn.Module):
                 [t.sin(), t.cos(), 0.],
                 [t.cos(), -t.sin(), 0.],
             ], dtype=self.dtype).unsqueeze(0)
-            all_grids.append(affine_grid(R, grid_shape))
+            all_grids.append(F.affine_grid(R, grid_shape, align_corners=False))
         return all_grids
